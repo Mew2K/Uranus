@@ -1,0 +1,26 @@
+name: Uranus
+version: '1.0'
+main: network.warzone.uranus.UranusPlugin
+api-version: '1.21.8'
+authors: [ Warzone ]
+website: https://warzone.network/
+dependencies:
+  server:
+    PGM:
+      load: AFTER
+      required: true
+      join-classpath: true
+    voicechat:
+      load: AFTER
+      required: false
+      join-classpath: true
+#depend: [ voicechat ]
+#commands:
+#  vcmute:
+#    description: Mute a player in the voice chat.
+#    usage: /mute <player>
+#    permission: uranus.voicechat.mute
+#  vcunmute:
+#    description: Unmute a player in the voice chat.
+#    usage: /unmute <player>
+#    permission: uranus.voicechat.unmute

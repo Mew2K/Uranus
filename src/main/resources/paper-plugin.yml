@@ -7,11 +7,11 @@ website: https://warzone.network/
 dependencies:
   server:
     PGM:
-      load: AFTER
+      load: BEFORE
       required: true
       join-classpath: true
     voicechat:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: true
 #depend: [ voicechat ]

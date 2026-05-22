@@ -1,10 +1,12 @@
 package network.warzone.uranus
 
 import de.maxhenkel.voicechat.api.BukkitVoicechatService
+import network.warzone.uranus.mutations.MutationManager
 import network.warzone.uranus.voice.UranusVoicePlugin
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import tc.oc.pgm.api.PGM
 
 class UranusPlugin : JavaPlugin() {
 
@@ -14,18 +16,29 @@ class UranusPlugin : JavaPlugin() {
     }
 
     lateinit var commandGraph: UranusCommandGraph
+    lateinit var mutationManager: MutationManager
 
     override fun onEnable() {
+        instance = this
+        this.loadMutations()
         this.loadCommandManager()
         this.loadVoiceChatIntegration()
     }
 
     override fun onDisable() {
-        // Plugin shutdown logic
+        if (::mutationManager.isInitialized) {
+            runCatching {
+                PGM.get().matchManager.matches.forEachRemaining(mutationManager::disableAll)
+            }
+        }
     }
 
     fun loadCommandManager() {
         this.commandGraph = UranusCommandGraph(this)
+    }
+
+    fun loadMutations() {
+        this.mutationManager = MutationManager(this)
     }
 
     fun loadVoiceChatIntegration() {

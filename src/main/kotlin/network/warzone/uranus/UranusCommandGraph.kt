@@ -28,7 +28,7 @@ class UranusCommandGraph(plugin: UranusPlugin) : CommandGraph<UranusPlugin>(plug
 
     override fun registerCommands() {
         // Default commands
-        // TBD
+        register(plugin.mutationManager.command)
     }
 
     public override fun register(command: Any) {

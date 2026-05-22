@@ -25,26 +25,46 @@ class MutationCommand(private val mutations: MutationManager) {
     @CommandDescription("Toggle the Warden spawn mutation")
     @Permission("uranus.mutation.warden")
     fun toggleWarden(sender: CommandSender) {
-        handleWarden(sender, null)
+        handleMutation(sender, "warden", null)
     }
 
     @Command("mutation warden <state>")
     @CommandDescription("Enable or disable the Warden spawn mutation")
     @Permission("uranus.mutation.warden")
     fun setWarden(sender: CommandSender, @Argument("state") state: String) {
-        val enabled = when (state.lowercase()) {
-            "on", "enable", "enabled", "true", "yes" -> true
-            "off", "disable", "disabled", "false", "no" -> false
-            else -> {
-                Audience.get(sender).sendWarning(text("Use on or off.", NamedTextColor.RED))
-                return
-            }
-        }
-        handleWarden(sender, enabled)
+        handleMutation(sender, "warden", parseState(sender, state) ?: return)
     }
 
-    private fun handleWarden(sender: CommandSender, enabled: Boolean?) {
-        val mutation = mutations.get("warden") ?: return
+    @Command("mutation rage")
+    @CommandDescription("Toggle the Rage mutation")
+    @Permission("uranus.mutation.rage")
+    fun toggleRage(sender: CommandSender) {
+        handleMutation(sender, "rage", null)
+    }
+
+    @Command("mutation rage <state>")
+    @CommandDescription("Enable or disable the Rage mutation")
+    @Permission("uranus.mutation.rage")
+    fun setRage(sender: CommandSender, @Argument("state") state: String) {
+        handleMutation(sender, "rage", parseState(sender, state) ?: return)
+    }
+
+    @Command("mutation speedster")
+    @CommandDescription("Toggle the Speedster mutation")
+    @Permission("uranus.mutation.speedster")
+    fun toggleSpeedster(sender: CommandSender) {
+        handleMutation(sender, "speedster", null)
+    }
+
+    @Command("mutation speedster <state>")
+    @CommandDescription("Enable or disable the Speedster mutation")
+    @Permission("uranus.mutation.speedster")
+    fun setSpeedster(sender: CommandSender, @Argument("state") state: String) {
+        handleMutation(sender, "speedster", parseState(sender, state) ?: return)
+    }
+
+    private fun handleMutation(sender: CommandSender, mutationId: String, enabled: Boolean?) {
+        val mutation = mutations.get(mutationId) ?: return
         val match = getMatch(sender) ?: run {
             Audience.get(sender).sendWarning(text("No active PGM match was found.", NamedTextColor.RED))
             return
@@ -78,11 +98,22 @@ class MutationCommand(private val mutations: MutationManager) {
         return PGM.get().matchManager.getMatch(sender)
     }
 
+    private fun parseState(sender: CommandSender, state: String): Boolean? {
+        return when (state.lowercase()) {
+            "on", "enable", "enabled", "true", "yes" -> true
+            "off", "disable", "disabled", "false", "no" -> false
+            else -> {
+                Audience.get(sender).sendWarning(text("Use on or off.", NamedTextColor.RED))
+                null
+            }
+        }
+    }
+
     private fun announceEnabled(match: Match, mutationName: String) {
         val legacy = LegacyComponentSerializer.legacySection()
         val title = title(
             legacy.deserialize("\u00A73\u00A7l\u00A7k[]\u00A7r \u00A73\u00A7lMutation \u00A7k[]"),
-            legacy.deserialize("\u00A7aWarden Mayham"),
+            text(mutationName, NamedTextColor.GREEN),
             net.kyori.adventure.title.Title.Times.times(
                 Duration.ofMillis(500),
                 Duration.ofSeconds(5),

@@ -52,6 +52,10 @@ class UranusCommandGraph(plugin: UranusPlugin) : CommandGraph<UranusPlugin>(plug
         val formatted = syntax
             .replace("mutation warden <state>", "mutation warden [on/off]")
             .replace("mutation warden state", "mutation warden [on/off]")
+            .replace("mutation rage <state>", "mutation rage [on/off]")
+            .replace("mutation rage state", "mutation rage [on/off]")
+            .replace("mutation speedster <state>", "mutation speedster [on/off]")
+            .replace("mutation speedster state", "mutation speedster [on/off]")
 
         return if (formatted.startsWith("/")) formatted else "/$formatted"
     }

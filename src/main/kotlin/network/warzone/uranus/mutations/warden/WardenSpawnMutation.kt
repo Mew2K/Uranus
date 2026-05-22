@@ -2,16 +2,21 @@ package network.warzone.uranus.mutations.warden
 
 import network.warzone.uranus.mutations.Mutation
 import network.warzone.uranus.mutations.MutationResult
+import net.kyori.adventure.text.Component.text
 import org.bukkit.Location
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDeathEvent
 import tc.oc.pgm.api.match.Match
 import tc.oc.pgm.api.party.Competitor
 import tc.oc.pgm.api.player.MatchPlayer
 import tc.oc.pgm.spawns.Spawn
 import tc.oc.pgm.spawns.SpawnMatchModule
 import tc.oc.pgm.teams.Team
+import tc.oc.pgm.teams.TeamMatchModule
 import tc.oc.pgm.tracker.TrackerMatchModule
 import tc.oc.pgm.tracker.info.MobInfo
 import java.lang.reflect.InvocationHandler
@@ -19,10 +24,10 @@ import java.lang.reflect.Proxy
 import java.util.Optional
 import java.util.UUID
 
-class WardenSpawnMutation : Mutation {
+class WardenSpawnMutation : Mutation, Listener {
 
     override val id: String = "warden"
-    override val name: String = "Warden Spawn"
+    override val name: String = "Warden Mayham"
 
     private val wardensByMatch = mutableMapOf<String, MutableSet<UUID>>()
 
@@ -42,18 +47,26 @@ class WardenSpawnMutation : Mutation {
             return MutationResult(false, "$name is already enabled.")
         }
 
+        val teams = match.competitors.filterIsInstance<Team>()
+        if (match.getModule(TeamMatchModule::class.java) == null || teams.isEmpty()) {
+            return MutationResult(false, "This mutation requires a team-based map!")
+        }
+
         val spawns = match.getModule(SpawnMatchModule::class.java)
             ?: return MutationResult(false, "This map does not expose PGM team spawns.")
         val tracker = match.getModule(TrackerMatchModule::class.java)
             ?: return MutationResult(false, "PGM's tracker module is not loaded for this match.")
 
         val spawned = mutableSetOf<UUID>()
-        val teams = match.competitors.filterIsInstance<Team>()
         for (team in teams) {
             val location = findSpawnLocation(match, spawns, team) ?: continue
             val warden = match.world.spawnEntity(location, wardenType)
             if (warden is LivingEntity) {
+                warden.removeWhenFarAway = false
+                warden.isPersistent = true
                 tracker.entityTracker.trackEntity(warden, MobInfo(warden, TeamParticipantState(team, location)))
+                warden.customName(team.getName().append(text("'s Warden")))
+                warden.isCustomNameVisible = false
             }
             spawned.add(warden.uniqueId)
         }
@@ -63,7 +76,7 @@ class WardenSpawnMutation : Mutation {
         }
 
         wardensByMatch[match.id] = spawned
-        return MutationResult(true, "Enabled $name and spawned ${spawned.size} wardens.")
+        return MutationResult(true, "Enabled $name and spawned ${spawned.size} wardens.", this, true)
     }
 
     override fun disable(match: Match): MutationResult {
@@ -97,6 +110,17 @@ class WardenSpawnMutation : Mutation {
             killed++
         }
         return killed
+    }
+
+    @EventHandler
+    fun onWardenDeath(event: EntityDeathEvent) {
+        val wardenType = wardenType() ?: return
+        if (event.entity.type != wardenType) return
+
+        if (wardensByMatch.values.any { event.entity.uniqueId in it }) {
+            event.drops.clear()
+            event.droppedExp = 0
+        }
     }
 
     private fun teamSpawnQuery(match: Match, team: Competitor): MatchPlayer {

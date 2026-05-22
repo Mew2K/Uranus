@@ -20,6 +20,7 @@ interface Mutation {
 
 data class MutationResult(
     val success: Boolean,
-    val message: String
+    val message: String,
+    val mutation: Mutation? = null,
+    val enabled: Boolean = false
 )
-

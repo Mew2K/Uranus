@@ -5,15 +5,11 @@ import de.maxhenkel.voicechat.api.events.EventRegistration
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent
 import de.maxhenkel.voicechat.api.events.PlayerConnectedEvent
 import de.maxhenkel.voicechat.api.events.PlayerDisconnectedEvent
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.title.Title
-import net.kyori.adventure.title.Title.title
 import network.warzone.uranus.voice.util.bukkit
 import network.warzone.uranus.voice.util.matchPlayer
+import org.bukkit.entity.Player
 import org.bukkit.event.Listener
 import tc.oc.pgm.teams.Team
-import java.time.Duration
 import java.util.*
 
 object VoiceChatListener : Listener {
@@ -35,15 +31,11 @@ object VoiceChatListener : Listener {
 
         val bukkitPlayer = event.connection.bukkit() ?: return
 
-        bukkitPlayer.showTitle(title(
-                text("Voice Chat Connected", NamedTextColor.YELLOW),
-                text("Please be aware that your microphone might be on!", NamedTextColor.GRAY),
-                Title.Times.times(
-                    Duration.ofSeconds(1),
-                    Duration.ofSeconds(5),
-                    Duration.ofSeconds(1)
-                )
-            ))
+        sendTitle(
+            bukkitPlayer,
+            "\u00A7eVoice Chat Connected",
+            "\u00A77Please be aware that your microphone might be on!"
+        )
     }
 
     fun onDisconnect(event: PlayerDisconnectedEvent) {
@@ -82,6 +74,31 @@ object VoiceChatListener : Listener {
 
     fun unmutePlayer(player: UUID) {
         mutedPlayers.remove(player)
+    }
+
+    private fun sendTitle(player: Player, title: String, subtitle: String) {
+        val titleSent = runCatching {
+            val method = player.javaClass.getMethod(
+                "sendTitle",
+                String::class.java,
+                String::class.java,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType
+            )
+            method.invoke(player, title, subtitle, 20, 100, 20)
+        }.isSuccess
+
+        if (titleSent) return
+
+        val legacyTitleSent = runCatching {
+            val method = player.javaClass.getMethod("sendTitle", String::class.java, String::class.java)
+            method.invoke(player, title, subtitle)
+        }.isSuccess
+
+        if (!legacyTitleSent) {
+            player.sendMessage("$title \u00A7r$subtitle")
+        }
     }
 
 }

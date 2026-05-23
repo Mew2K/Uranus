@@ -1,8 +1,6 @@
 package network.warzone.uranus.voice.commands
 
 import de.maxhenkel.voicechat.api.VoicechatConnection
-import net.kyori.adventure.text.Component.text
-import net.kyori.adventure.text.format.NamedTextColor
 import network.warzone.uranus.voice.listeners.VoiceChatListener
 import network.warzone.uranus.voice.util.bukkit
 import org.bukkit.command.CommandSender
@@ -22,13 +20,13 @@ class MuteCommand {
         val player = connection.bukkit()!!
 
         if (VoiceChatListener.isMuted(player.uniqueId)) {
-            sender.sendMessage(text("${player.name} is already muted in voice chat.", NamedTextColor.YELLOW))
+            sender.sendMessage("\u00A7e${player.name} is already muted in voice chat.")
             return
         }
 
         VoiceChatListener.mutePlayer(player.uniqueId)
-        sender.sendMessage(text("Muted ${player.name} in voice chat.", NamedTextColor.GREEN))
-        player.sendMessage(text("You have been muted in voice chat.", NamedTextColor.RED))
+        sender.sendMessage("\u00A7aMuted ${player.name} in voice chat.")
+        player.sendMessage("\u00A7cYou have been muted in voice chat.")
         return
     }
 
@@ -46,13 +44,13 @@ class UnmuteCommand {
         val player = connection.bukkit()!!
 
         if (!VoiceChatListener.isMuted(player.uniqueId)) {
-            sender.sendMessage(text("${player.name} is not muted in voice chat.", NamedTextColor.YELLOW))
+            sender.sendMessage("\u00A7e${player.name} is not muted in voice chat.")
             return
         }
 
         VoiceChatListener.unmutePlayer(player.uniqueId)
-        sender.sendMessage(text("Unmuted ${player.name} in voice chat.", NamedTextColor.GREEN))
-        player.sendMessage(text("You have been unmuted in voice chat.", NamedTextColor.GREEN))
+        sender.sendMessage("\u00A7aUnmuted ${player.name} in voice chat.")
+        player.sendMessage("\u00A7aYou have been unmuted in voice chat.")
         return
     }
 

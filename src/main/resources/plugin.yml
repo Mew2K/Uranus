@@ -1,0 +1,7 @@
+name: Uranus
+version: '${version}'
+main: network.warzone.uranus.UranusPlugin
+authors: [ Warzone ]
+website: https://warzone.network/
+depend: [ PGM ]
+softdepend: [ voicechat ]

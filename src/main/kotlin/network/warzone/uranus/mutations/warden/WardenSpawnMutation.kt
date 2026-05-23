@@ -2,7 +2,6 @@ package network.warzone.uranus.mutations.warden
 
 import network.warzone.uranus.mutations.Mutation
 import network.warzone.uranus.mutations.MutationResult
-import net.kyori.adventure.text.Component.text
 import network.warzone.uranus.UranusPlugin
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -40,7 +39,7 @@ class WardenSpawnMutation : Mutation, Listener {
 
     override fun isEnabled(match: Match): Boolean {
         val wardenIds = wardensByMatch[match.id] ?: return false
-        wardenIds.removeIf { match.world.getEntity(it) == null }
+        wardenIds.removeIf { id -> match.world.entities.none { it.uniqueId == id } }
         return wardenIds.isNotEmpty()
     }
 
@@ -94,10 +93,10 @@ class WardenSpawnMutation : Mutation, Listener {
         val warden = match.world.spawnEntity(location, wardenType)
 
         if (warden is LivingEntity) {
-            warden.removeWhenFarAway = false
-            warden.isPersistent = true
+            invokeIfPresent(warden, "setRemoveWhenFarAway", false)
+            invokeIfPresent(warden, "setPersistent", true)
             tracker.entityTracker.trackEntity(warden, MobInfo(warden, TeamParticipantState(team, location)))
-            warden.customName(team.getName().append(text("'s Warden")))
+            setCustomName(warden, "${team.nameLegacy}\u00A7r's Warden")
             warden.isCustomNameVisible = false
         }
 
@@ -212,6 +211,20 @@ class WardenSpawnMutation : Mutation, Listener {
 
     private fun wardenType(): EntityType? {
         return runCatching { EntityType.valueOf("WARDEN") }.getOrNull()
+    }
+
+    private fun invokeIfPresent(entity: LivingEntity, methodName: String, value: Boolean) {
+        runCatching {
+            val method = entity.javaClass.getMethod(methodName, Boolean::class.javaPrimitiveType)
+            method.invoke(entity, value)
+        }
+    }
+
+    private fun setCustomName(entity: LivingEntity, name: String) {
+        runCatching {
+            val method = entity.javaClass.getMethod("setCustomName", String::class.java)
+            method.invoke(entity, name)
+        }
     }
 
     companion object {

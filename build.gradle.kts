@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.2.0"
@@ -14,6 +15,9 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/") {
         name = "papermc-repo"
     }
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
+        name = "spigotmc-repo"
+    }
     maven("https://oss.sonatype.org/content/groups/public/") {
         name = "sonatype"
     }
@@ -22,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.6-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 //    implementation("org.incendo:cloud-paper:2.0.0-beta.10")
 //    implementation("org.incendo:cloud-kotlin-coroutines-annotations:2.0.0")
@@ -61,7 +65,15 @@ tasks {
     }
 }
 
-val targetJavaVersion = 21
+val buildJavaVersion = 21
 kotlin {
-    jvmToolchain(targetJavaVersion)
+    jvmToolchain(buildJavaVersion)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
